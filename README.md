@@ -1,8 +1,8 @@
-# 💰 Pocket - Aplikasi Pencatat Keuangan Pribadi
+# 💰 Econary - Aplikasi Pencatat Keuangan Pribadi
 
-Pocket adalah aplikasi web modern untuk mencatat, mengelola, dan menganalisis keuangan pribadi Anda. Dibuat dengan Next.js, Tailwind CSS, dan PostgreSQL.
+Econary adalah aplikasi web modern untuk mencatat, mengelola, dan menganalisis keuangan pribadi Anda. Dilengkapi dengan fitur Alternate Universe untuk simulasi keputusan finansial. Dibuat dengan Next.js, Tailwind CSS, dan PostgreSQL.
 
-![Pocket Preview](https://via.placeholder.com/1200x600/0f766e/ffffff?text=Pocket+Financial+Tracker)
+![Econary Preview](https://via.placeholder.com/1200x600/4d8061/ffffff?text=Econary+Financial+Tracker)
 
 ## ✨ Fitur Utama
 
@@ -11,9 +11,12 @@ Pocket adalah aplikasi web modern untuk mencatat, mengelola, dan menganalisis ke
 - 📁 **Kategori Custom** - Organisir transaksi dengan kategori yang bisa disesuaikan
 - 💰 **Multi-Dompet** - Kelola berbagai sumber dana (cash, bank, e-wallet)
 - 📈 **Laporan & Grafik** - Analisis keuangan dengan grafik interaktif
-- 🎯 **Anggaran Bulanan** - Atur dan pantau target pengeluaran
+- 🎯 **Perencanaan Anggaran** - Atur dan pantau target pengeluaran bulanan
+- 🎯 **Target Tabungan** - Buat dan lacak progress target tabungan Anda
+- 🌌 **Alternate Universe** - Simulasi keputusan finansial dengan AI prediktif
 - 🌙 **Dark Mode** - Tampilan gelap untuk kenyamanan mata
 - 📱 **Responsive** - Optimal di desktop, tablet, dan mobile
+- 🌐 **Multi-bahasa** - Dukungan Bahasa Indonesia dan English
 
 ## 🛠️ Tech Stack
 
@@ -38,8 +41,8 @@ Pocket adalah aplikasi web modern untuk mencatat, mengelola, dan menganalisis ke
 
 1. Clone repository ini:
 ```bash
-git clone <repository-url>
-cd pocket
+git clone https://github.com/Fiiluthfiii/Econary.git
+cd Econary
 ```
 
 2. Install dependencies:
@@ -51,7 +54,7 @@ yarn install
 
 3. Setup Environment Variables:
 
-Buat file `.env` di root folder dan isi dengan konfigurasi berikut:
+Buat file `.env` dan `.env.local` di root folder dan isi dengan konfigurasi berikut:
 
 ```env
 # Database - Dapatkan dari Neon.tech
@@ -108,19 +111,23 @@ Setelah menjalankan seed, Anda bisa login dengan:
 ## 📁 Struktur Project
 
 ```
-pocket/
+Econary/
 ├── app/
 │   ├── api/              # API Routes
 │   │   ├── auth/        # Authentication endpoints
 │   │   ├── transactions/
 │   │   ├── categories/
-│   │   └── wallets/
+│   │   ├── wallets/
+│   │   ├── budgets/
+│   │   └── saving-goals/
 │   ├── dashboard/       # Dashboard pages
 │   │   ├── transactions/
 │   │   ├── categories/
-│   │   ├── budget/
-│   │   ├── reports/
 │   │   ├── wallets/
+│   │   ├── budget/
+│   │   ├── saving-goals/
+│   │   ├── alternate-universe/
+│   │   ├── reports/
 │   │   └── settings/
 │   ├── login/          # Login page
 │   ├── register/       # Register page
@@ -130,10 +137,16 @@ pocket/
 ├── components/
 │   ├── dashboard/      # Dashboard components
 │   ├── transactions/   # Transaction components
+│   ├── budget/         # Budget components
+│   ├── saving-goals/   # Saving goals components
+│   ├── alternate-universe/ # AU components
+│   ├── settings/       # Settings components
 │   └── providers/      # Context providers
 ├── lib/
 │   ├── prisma.js       # Prisma client
-│   └── auth.js         # Auth utilities
+│   ├── auth.js         # Auth utilities
+│   ├── translations.js # i18n translations
+│   └── exportPDF.js    # PDF export utility
 ├── prisma/
 │   ├── schema.prisma   # Database schema
 │   └── seed.js         # Seed data
@@ -146,15 +159,28 @@ pocket/
 
 ## 🗄️ Database Schema
 
-Aplikasi menggunakan 5 model utama:
+Aplikasi menggunakan 7 model utama:
 
 - **User** - Data pengguna
 - **Wallet** - Dompet/akun keuangan
 - **Category** - Kategori transaksi
 - **Transaction** - Transaksi keuangan
-- **Budget** - Anggaran bulanan
+- **Budget** - Anggaran bulanan per kategori
+- **SavingGoal** - Target tabungan
+- **SavingTransaction** - Transaksi setoran ke target tabungan
 
 Lihat detail schema di `prisma/schema.prisma`
+
+## 🌌 Fitur Alternate Universe
+
+Fitur unggulan Econary yang memungkinkan Anda untuk:
+
+- Simulasi keputusan finansial tanpa risiko
+- Bandingkan skenario "Universe Utama" vs "Alternate Universe"
+- Proyeksi 24 bulan ke depan berdasarkan data real
+- Modifikasi parameter: lifestyle, investasi, skenario freelancer/mahasiswa
+- Rekomendasi AI berdasarkan pola transaksi
+- Visualisasi grafik proyeksi interaktif
 
 ## 🔐 Keamanan
 
@@ -163,6 +189,7 @@ Lihat detail schema di `prisma/schema.prisma`
 - Protected routes dengan NextAuth middleware
 - Input validation di client dan server side
 - Environment variables untuk kredensial sensitif
+- CSRF protection
 
 ## 📱 Responsive Design
 
@@ -174,10 +201,12 @@ Aplikasi dioptimalkan untuk berbagai ukuran layar:
 
 ## 🎨 Design System
 
-Pocket menggunakan design system yang konsisten:
+Econary menggunakan design system yang konsisten:
 
-- **Primary Color**: Teal/Primary-600 (#0d9488)
-- **Typography**: Inter font family
+- **Primary Color**: Green (#4d8061)
+- **Secondary Color**: Gold (#80672d)
+- **Background**: Warm beige (#f8f5ef, #f4f1e9)
+- **Typography**: Inter + Georgia serif untuk headings
 - **Components**: Card-based layout dengan border radius konsisten
 - **Spacing**: Tailwind spacing scale
 - **Shadows**: Subtle shadows untuk depth
@@ -198,15 +227,54 @@ Pocket menggunakan design system yang konsisten:
 ### Categories
 - `GET /api/categories` - Get all categories
 - `POST /api/categories` - Create category
+- `PUT /api/categories/[id]` - Update category
+- `DELETE /api/categories/[id]` - Delete category
 
 ### Wallets
 - `GET /api/wallets` - Get all wallets
 - `POST /api/wallets` - Create wallet
+- `PUT /api/wallets/[id]` - Update wallet
+- `DELETE /api/wallets/[id]` - Delete wallet
+
+### Budgets
+- `GET /api/budgets` - Get all budgets
+- `POST /api/budgets` - Create budget
+- `PUT /api/budgets/[id]` - Update budget
+- `DELETE /api/budgets/[id]` - Delete budget
+
+### Saving Goals
+- `GET /api/saving-goals` - Get all saving goals
+- `POST /api/saving-goals` - Create saving goal
+- `PUT /api/saving-goals/[id]` - Update saving goal
+- `DELETE /api/saving-goals/[id]` - Delete saving goal
+- `GET /api/saving-goals/[id]/transactions` - Get goal transactions
+- `POST /api/saving-goals/[id]/transactions` - Add deposit to goal
+
+### User
+- `GET /api/user/profile` - Get user profile
+- `PUT /api/user/profile` - Update profile
+- `PUT /api/user/password` - Change password
+- `DELETE /api/user/delete` - Delete account
+
+## 🌐 Multi-language Support
+
+Econary mendukung 2 bahasa:
+- 🇮🇩 Bahasa Indonesia (default)
+- 🇬🇧 English
+
+Ganti bahasa melalui halaman Settings.
 
 ## 🚧 Roadmap
 
+- [x] Dashboard interaktif dengan real data
+- [x] Manajemen transaksi lengkap
+- [x] Kategori dan dompet custom
+- [x] Perencanaan anggaran bulanan
+- [x] Target tabungan dengan tracking
+- [x] Alternate Universe simulator
+- [x] Multi-language support
 - [ ] Export laporan ke PDF/CSV
-- [ ] Notifikasi anggaran
+- [ ] Notifikasi anggaran via email
 - [ ] Upload foto struk
 - [ ] Recurring transactions
 - [ ] Multi-currency support
@@ -229,15 +297,17 @@ Project ini dibuat untuk keperluan pembelajaran dan portfolio.
 
 ## 👨‍💻 Author
 
-Dibuat dengan ❤️ mengikuti PRD yang detail dan komprehensif.
+Dibuat dengan ❤️ oleh Fiiluthfiii
 
 ## 🙏 Acknowledgments
 
-- Design inspiration dari Mint, YNAB, dan modern fintech apps
+- Design inspiration dari modern fintech apps
 - Icons dari Lucide React
 - Charts dari Recharts
 - UI framework dari Tailwind CSS
+- Database dari Neon.tech
+- Deployment dari Vercel
 
 ---
 
-**Happy tracking your finances! 💰**
+**Happy tracking your finances with Econary! 💰✨**
