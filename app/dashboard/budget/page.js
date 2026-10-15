@@ -12,5 +12,5 @@ export default async function BudgetPage() {
     redirect('/login');
   }
 
-  return <BudgetClient userId={session.user.id} />;
+  return <BudgetClient userId={session.user.id} userName={session.user.name} />;
 }

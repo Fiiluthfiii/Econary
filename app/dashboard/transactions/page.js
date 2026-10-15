@@ -12,5 +12,5 @@ export default async function TransactionsPage() {
     redirect('/login');
   }
 
-  return <TransactionsClient userId={session.user.id} />;
+  return <TransactionsClient userId={session.user.id} userName={session.user.name} />;
 }

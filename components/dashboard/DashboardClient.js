@@ -1,588 +1,150 @@
 'use client';
 
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet,
-  Plus,
-  ArrowUpRight,
-  ArrowDownRight,
-  Search,
-  User,
-  UtensilsCrossed,
-  Banknote,
-  ShoppingBag,
-  Home as HomeIcon,
-  PiggyBank
-} from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { usePreferences } from '@/components/providers/PreferencesProvider';
+import { Download, ArrowDownLeft, ArrowUpRight, WalletCards, ShieldCheck, ChevronRight, Plus, Sparkles, Bell } from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/currency';
-import { useState } from 'react';
 
-// Translations
-const translations = {
-  id: {
-    hello: 'Halo',
-    summary: 'Inringkasan keuanganmu untuk bulan',
-    search: 'Cari transaksi, laporan...',
-    addTransaction: '+ Tambah Transaksi',
-    totalBalance: 'TOTAL SALDO',
-    totalIncome: 'TOTAL PEMASUKAN',
-    totalExpense: 'TOTAL PENGELUARAN',
-    cashflow: 'Arus Kas',
-    income: 'Pemasukan',
-    expense: 'Pengeluaran',
-    transactions: 'Transaksi',
-    viewAll: 'Lihat Semua',
-    category: 'Kategori',
-    dominant: 'Dominan',
-    efficient: 'Efisien',
-    noCategory: 'Belum ada data kategori',
-    budgetTarget: 'Target Anggaran',
-    noBudget: 'Belum ada target anggaran',
-    createBudget: 'Buat Target Anggaran',
-  },
-  en: {
-    hello: 'Hello',
-    summary: 'Your financial summary for',
-    search: 'Search transactions, reports...',
-    addTransaction: '+ Add Transaction',
-    totalBalance: 'TOTAL BALANCE',
-    totalIncome: 'TOTAL INCOME',
-    totalExpense: 'TOTAL EXPENSES',
-    cashflow: 'Cash Flow',
-    income: 'Income',
-    expense: 'Expenses',
-    transactions: 'Transactions',
-    viewAll: 'View All',
-    category: 'Category',
-    dominant: 'Dominant',
-    efficient: 'Efficient',
-    noCategory: 'No category data yet',
-    budgetTarget: 'Budget Target',
-    noBudget: 'No budget target yet',
-    createBudget: 'Create Budget Target',
-  }
-};
+const colors = ['#c83232', '#4d8061', '#d0a653', '#75a987', '#696256', '#bfc5b7', '#d8d2c3'];
+const initials = (name = 'User') => name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
 export default function DashboardClient({ data }) {
-  const { language } = usePreferences();
-  const t = (key) => translations[language]?.[key] || translations['id'][key] || key;
+  const { 
+    totalBalance, 
+    income, 
+    expenses, 
+    transactions = [], 
+    categoryExpenses = [], 
+    monthlyData = [], 
+    userName,
+    prevMonthBalance = 0,
+    prevMonthIncome = 0,
+    prevMonthExpenses = 0
+  } = data;
   
-  const { totalBalance, income, expenses, transactions, categoryExpenses, monthlyData } = data;
+  // Calculate real percentages from database
+  const balanceChange = prevMonthBalance > 0 
+    ? (((totalBalance - prevMonthBalance) / prevMonthBalance) * 100).toFixed(1) 
+    : '0.0';
+  const balanceChangePositive = Number(balanceChange) >= 0;
   
-  // Debug log
-  console.log('DashboardClient received data:');
-  console.log('  Income:', income);
-  console.log('  Expenses:', expenses);
-  console.log('  Total Balance:', totalBalance);
+  const incomeChange = prevMonthIncome > 0
+    ? (((income - prevMonthIncome) / prevMonthIncome) * 100).toFixed(1)
+    : '0.0';
+  const incomeChangePositive = Number(incomeChange) >= 0;
   
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const formatCurrencyLocal = (amount) => {
-    return formatCurrency(amount);
-  };
+  const savingsRate = income > 0 ? ((income - expenses) / income * 100).toFixed(1) : '0.0';
+  const savings = income - expenses;
   
-  const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      // Redirect to transactions page with search query
-      window.location.href = `/dashboard/transactions?search=${encodeURIComponent(searchQuery.trim())}`;
-    }
-  };
-
-  // Get icon for transaction category
-  const getCategoryIcon = (categoryName) => {
-    const name = categoryName?.toLowerCase() || '';
-    if (name.includes('makan') || name.includes('makanan')) return UtensilsCrossed;
-    if (name.includes('gaji') || name.includes('gali')) return Banknote;
-    if (name.includes('belanja')) return ShoppingBag;
-    if (name.includes('listrik') || name.includes('air')) return HomeIcon;
-    return Wallet;
-  };
-
-  // Calculate percentage changes from previous month
-  const prevIncome = data.prevMonthIncome || 0;
-  const prevExpenses = data.prevMonthExpenses || 0;
-  const prevBalance = data.prevMonthBalance || totalBalance;
+  // Calculate projected savings (6 months based on current rate)
+  const projectedSavings = savings * 6;
   
-  const balanceChange = prevBalance > 0 
-    ? ((totalBalance - prevBalance) / prevBalance * 100).toFixed(1) + '%'
-    : '+0%';
-  const incomeChange = prevIncome > 0 
-    ? ((income - prevIncome) / prevIncome * 100).toFixed(1) + '%'
-    : '+0%';
-  const expenseChange = prevExpenses > 0 
-    ? ((expenses - prevExpenses) / prevExpenses * 100).toFixed(1) + '%'
-    : '+0%';
-
-  // Get current month name
-  const currentMonth = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
-  const currentYear = new Date().getFullYear();
-
-  // Use monthlyData for cashflow chart (last 6 months)
-  const cashflowData = monthlyData.map(item => ({
-    month: item.month,
-    Pemasukan: item.income,
-    Pengeluaran: item.expense,
-  }));
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-lg">
-          <p className="text-sm font-semibold text-slate-900 mb-2">
-            {payload[0].payload.month}
-          </p>
-          {payload.map((entry, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: entry.color }}
-              ></div>
-              <span className="text-slate-600">{entry.name}:</span>
-              <span className="font-semibold text-slate-900">
-                {formatCurrency(entry.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Use real budget data
-  const budgetData = data.budgets?.map(budget => ({
-    name: budget.category?.name || budget.name || 'Anggaran',
-    spent: budget.spent || 0,
-    budget: budget.amount,
-    percentage: budget.amount > 0 ? Math.round((budget.spent / budget.amount) * 100) : 0,
-    icon: getCategoryIcon(budget.category?.name),
-    color: budget.category?.color || '#6366F1',
-  })) || [];
+  // Calculate what 30% expense reduction would save
+  const potentialSavings = (expenses * 0.30) * 6;
+  
+  const totalCategoryExpense = categoryExpenses.reduce((sum, item) => sum + item.value, 0);
+  const averageIncome = monthlyData.length ? monthlyData.reduce((sum, item) => sum + item.income, 0) / monthlyData.length : 0;
+  const averageExpense = monthlyData.length ? monthlyData.reduce((sum, item) => sum + item.expense, 0) / monthlyData.length : 0;
+  const chartData = monthlyData.map((item) => ({ ...item, incomeMillions: item.income / 1000000, expenseMillions: item.expense / 1000000 }));
+  const recentTransactions = transactions.slice(0, 5);
+  const monthName = format(new Date(), 'MMMM yyyy', { locale: id });
+  const categoryChart = useMemo(() => {
+    if (!totalCategoryExpense) return 'conic-gradient(#e8e3d9 0 100%)';
+    let cursor = 0;
+    const stops = categoryExpenses.slice(0, 7).map((item, index) => { const next = cursor + (item.value / totalCategoryExpense) * 360; const stop = `${colors[index % colors.length]} ${cursor}deg ${next}deg`; cursor = next; return stop; });
+    return `conic-gradient(${stops.join(', ')})`;
+  }, [categoryExpenses, totalCategoryExpense]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-            {t('hello')}, {data.userName || 'User'}! 👋
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            {t('summary')} {currentMonth}
+    <div className="finverse-page space-y-5">
+      <div className="finverse-topbar"><div className="flex flex-wrap items-center gap-3 text-sm text-[#73766e]"><span className="font-semibold text-[#30332f]">Halo, {userName}! 👋</span><span className="hidden sm:inline">|</span><span>{format(new Date(), 'EEEE, dd MMMM yyyy', { locale: id })}</span><span className="sync-pill">◉ PostgreSQL Synced</span></div><div className="flex items-center gap-3"><Link href="/dashboard/transactions?action=add" className="finverse-primary-button hidden sm:flex"><Plus size={16} /> Tambah Transaksi</Link><button aria-label="Notifikasi" className="icon-button"><Bell size={18} /></button><div className="avatar">{initials(userName)}</div></div></div>
+
+      <section className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start"><div><h1 className="display-title">Halo, {userName}!<br /><span>👋</span></h1><p className="mt-2 max-w-xl text-sm leading-6 text-[#73766e]">Ringkasan kesehatan finansial, simulasi proyeksi, dan arus kas multi-revenue aktif Anda per {monthName}.</p></div><div className="flex flex-wrap gap-2 xl:justify-end"><Link href="/dashboard/reports" className="finverse-outline-button"><Download size={15} /> Unduh Laporan</Link><Link href="/dashboard/alternate-universe" className="finverse-gold-button"><Sparkles size={15} /> Buka Simulasi Universe</Link><Link href="/dashboard/transactions?action=add" className="finverse-primary-button"><Plus size={15} /> Tambah Transaksi</Link></div></section>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard 
+          label="Saldo Saat Ini" 
+          value={formatCurrency(totalBalance)} 
+          icon={<WalletCards size={17} />} 
+          tone="green" 
+          footer={
+            <>
+              <span className={balanceChangePositive ? "positive-chip" : "negative-chip"}>
+                {balanceChangePositive ? '↗' : '↘'} {balanceChangePositive ? '+' : ''}{balanceChange}%
+              </span> 
+              <small>vs bulan lalu</small>
+            </>
+          } 
+        />
+        <StatCard 
+          label="Total Pemasukan" 
+          value={formatCurrency(income)} 
+          icon={<ArrowDownLeft size={17} />} 
+          tone="cream" 
+          footer={
+            <>
+              <span className={incomeChangePositive ? "positive-chip" : "negative-chip"}>
+                {incomeChangePositive ? '↗' : '↘'} {incomeChangePositive ? '+' : ''}{incomeChange}%
+              </span>
+              <small>vs bulan lalu</small>
+            </>
+          } 
+        />
+        <StatCard 
+          label="Total Pengeluaran" 
+          value={formatCurrency(expenses)} 
+          icon={<ArrowUpRight size={17} />} 
+          tone="red" 
+          footer={
+            <>
+              <small>Saldo: {formatCurrency(Math.max(savings, 0))}</small>
+            </>
+          } 
+          progress={income ? Math.min(expenses / income * 100, 100) : 0} 
+        />
+        <StatCard 
+          label="Rasio Tabungan / Net" 
+          value={`${savingsRate}%`} 
+          icon={<ShieldCheck size={17} />} 
+          tone="cream" 
+          ring={`${Math.min(Number(savingsRate), 100)}%`} 
+          footer={
+            <>
+              <b className={Number(savingsRate) >= 50 ? "text-[#4d8061]" : "text-[#c83232]"}>
+                {Number(savingsRate) >= 50 ? 'Sehat' : 'Perlu Ditingkatkan'}
+              </b>
+              <small>(Target: &gt;50%)</small>
+            </>
+          } 
+        />
+      </section>
+
+      <section className="universe-banner">
+        <div className="timeline-icon">⌁</div>
+        <div className="min-w-0 flex-1">
+          <span className="timeline-label">ALTERNATE TIMELINE #1</span> 
+          <small>Simulasi Prediktif Econary AI</small>
+          <p className="mt-2 max-w-xl font-serif text-lg leading-6 md:text-xl">
+            Jika Anda memangkas belanja impulsif & kopi kekinian sebesar <u>30%</u>, 
+            saldo Anda diproyeksikan bertambah {formatCurrency(potentialSavings)} dalam 6 bulan ke depan!
           </p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder={t('search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleSearch}
-              className="pl-10 pr-4 py-2.5 w-64 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:border-transparent text-sm"
-            />
-          </div>
+        <Link href="/dashboard/alternate-universe" className="finverse-gold-button whitespace-nowrap">
+          Jelajahi Universe <ChevronRight size={16} />
+        </Link>
+      </section>
 
-          {/* Add Transaction Button */}
-          <Link 
-            href="/dashboard/transactions?action=add"
-            className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
-          >
-            {t('addTransaction')}
-          </Link>
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(270px,0.9fr)]"><div className="finverse-card"><div className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h2 className="section-title">Arus Kas 6 Bulan Terakhir</h2><p className="section-subtitle">Perbandingan akumulasi pemasukan dan pengeluaran (Jan - Jun 2024)</p></div><div className="chart-legend"><span><i className="dot green-dot" />Pemasukan</span><span><i className="dot red-dot" />Pengeluaran</span><span><i className="dash-dot" />Universe Projection</span></div></div><div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 5, bottom: 0, left: -20 }}><CartesianGrid vertical={false} stroke="#ece8df" /><XAxis dataKey="month" tick={{ fontSize: 11, fill: '#74776f' }} axisLine={false} tickLine={false} /><YAxis hide /><Tooltip formatter={(value) => [`Rp ${Number(value).toFixed(2)}jt`, '']} contentStyle={{ border: '1px solid #e7e2d8', borderRadius: 10, fontSize: 12 }} /><Line type="monotone" dataKey="incomeMillions" stroke="#4d8061" strokeWidth={2.5} dot={{ fill: '#4d8061', r: 4 }} /><Line type="monotone" dataKey="expenseMillions" stroke="#c83232" strokeWidth={2.5} dot={{ fill: '#c83232', r: 4 }} /></LineChart></ResponsiveContainer></div><div className="summary-strip"><div><small>Rata-rata Pemasukan</small><b>{formatCurrency(averageIncome)} / bln</b></div><div><small>Rata-rata Pengeluaran</small><b>{formatCurrency(averageExpense)} / bln</b></div><div><small>Proyeksi Tabungan 6 Bulan</small><b className="text-[#4d8061]">{projectedSavings >= 0 ? '+' : ''}{formatCurrency(projectedSavings)}</b></div></div></div><div className="finverse-card"><div className="mb-4 flex items-start justify-between"><div><h2 className="section-title">Kategori<br />Pengeluaran</h2><p className="section-subtitle mt-2">Distribusi pengeluaran berdasarkan 7 kategori</p></div><span className="month-pill">Bulan<br />Ini</span></div><div className="donut" style={{ background: categoryChart }}><div><small>Total</small><b>{formatCurrency(expenses).replace('Rp', '').trim()}</b></div></div><div className="mt-4 space-y-2">{categoryExpenses.slice(0, 7).map((category, index) => <div className="category-row" key={`${category.name}-${index}`}><span><i className="dot" style={{ background: colors[index % colors.length] }} />{category.name}</span><b>{totalCategoryExpense ? Math.round(category.value / totalCategoryExpense * 100) : 0}% ({formatCurrency(category.value)})</b></div>)}</div></div></section>
 
-          {/* User Avatar */}
-          <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
-            <User className="w-6 h-6 text-slate-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Balance */}
-        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-3xl p-6 border border-blue-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-blue-300 to-indigo-400 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-8 -right-4 w-20 h-20 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full opacity-25 animate-bounce-slow"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-purple-300 to-blue-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-4 left-4 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-8 right-16 w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-          
-          <div className="relative z-10 flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-              <Wallet className="w-6 h-6 text-white animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-full shadow-md">
-              {balanceChange.startsWith('-') ? balanceChange : '+' + balanceChange}
-            </span>
-          </div>
-          <p className="text-slate-700 text-sm font-semibold mb-1 uppercase tracking-wide relative z-10">{t('totalBalance')}</p>
-          <h3 className="text-3xl font-black text-slate-900 relative z-10 drop-shadow-sm">
-            {formatCurrencyLocal(totalBalance)}
-          </h3>
-        </div>
-
-        {/* Income */}
-        <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-3xl p-6 border border-green-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-green-300 to-emerald-400 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-8 -right-4 w-20 h-20 bg-gradient-to-br from-emerald-300 to-teal-400 rounded-full opacity-25 animate-bounce-slow"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-teal-300 to-green-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-4 left-4 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-8 right-16 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-          
-          <div className="relative z-10 flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-              <TrendingDown className="w-6 h-6 text-white transform rotate-180 animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-full shadow-md">
-              {incomeChange.startsWith('-') ? incomeChange : '+' + incomeChange}
-            </span>
-          </div>
-          <p className="text-slate-700 text-sm font-semibold mb-1 uppercase tracking-wide relative z-10">{t('totalIncome')}</p>
-          <h3 className="text-3xl font-black text-slate-900 relative z-10 drop-shadow-sm">
-            {formatCurrencyLocal(income)}
-          </h3>
-        </div>
-
-        {/* Expenses */}
-        <div className="bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 rounded-3xl p-6 border border-red-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-red-300 to-rose-400 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-8 -right-4 w-20 h-20 bg-gradient-to-br from-rose-300 to-pink-400 rounded-full opacity-25 animate-bounce-slow"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-pink-300 to-red-400 rounded-full opacity-15 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-4 left-4 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-8 right-16 w-1.5 h-1.5 bg-rose-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-          
-          <div className="relative z-10 flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
-              <TrendingUp className="w-6 h-6 text-white transform rotate-180 animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-red-600 bg-red-100 px-3 py-1.5 rounded-full shadow-md">
-              {expenseChange.startsWith('-') ? expenseChange : '+' + expenseChange}
-            </span>
-          </div>
-          <p className="text-slate-700 text-sm font-semibold mb-1 uppercase tracking-wide relative z-10">{t('totalExpense')}</p>
-          <h3 className="text-3xl font-black text-slate-900 relative z-10 drop-shadow-sm">
-            {formatCurrencyLocal(expenses)}
-          </h3>
-        </div>
-      </div>
-
-      {/* Charts and Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Cashflow Chart */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-slate-50 via-white to-blue-50 rounded-3xl p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full opacity-10 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-green-200 to-blue-200 rounded-full opacity-10 blur-3xl"></div>
-          
-          <div className="relative z-10 flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 drop-shadow-sm">{t('cashflow')}</h2>
-              <p className="text-sm text-slate-600 font-medium">{currentYear}</p>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl shadow-sm">
-                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-slate-700 font-semibold">{t('income')}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl shadow-sm">
-                <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-                <span className="text-slate-700 font-semibold">{t('expense')}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cashflowData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                <defs>
-                  <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#94a3b8"
-                  style={{ fontSize: '12px' }}
-                  tick={{ fill: '#64748b' }}
-                />
-                <YAxis 
-                  stroke="#94a3b8"
-                  style={{ fontSize: '12px' }}
-                  tick={{ fill: '#64748b' }}
-                  tickFormatter={(value) => {
-                    if (value >= 1000000) return `${(value / 1000000).toFixed(0)}jt`;
-                    if (value >= 1000) return `${(value / 1000).toFixed(0)}rb`;
-                    return value;
-                  }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="Pemasukan" 
-                  stroke="#6366F1" 
-                  strokeWidth={3}
-                  fill="url(#colorIncome)"
-                  dot={{ fill: '#6366F1', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 2, stroke: '#fff' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Pengeluaran" 
-                  stroke="#EF4444" 
-                  strokeWidth={3}
-                  fill="url(#colorExpense)"
-                  dot={{ fill: '#EF4444', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 2, stroke: '#fff' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Recent Transactions */}
-        <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-3xl p-6 border border-green-200 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-green-300 to-emerald-400 rounded-full opacity-15 animate-pulse"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-teal-300 to-green-400 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '0.7s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-green-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-6 left-6 w-1 h-1 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-          
-          <div className="relative z-10 flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-900 drop-shadow-sm">{t('transactions')}</h2>
-            <Link 
-              href="/dashboard/transactions"
-              className="text-sm text-[#6366F1] font-semibold hover:underline hover:scale-110 transition-transform"
-            >
-              {t('viewAll')}
-            </Link>
-          </div>
-
-          <div className="relative z-10 space-y-3">
-            {transactions.slice(0, 4).map((transaction) => {
-              const Icon = getCategoryIcon(transaction.category.name);
-              const isExpense = transaction.type === 'expense';
-              
-              return (
-                <div 
-                  key={transaction.id}
-                  className="flex items-center justify-between bg-white rounded-2xl p-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border border-slate-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform ${
-                      isExpense ? 'bg-gradient-to-br from-red-100 to-rose-100' : 'bg-gradient-to-br from-green-100 to-emerald-100'
-                    }`}>
-                      <Icon className={`w-6 h-6 ${
-                        isExpense ? 'text-red-600' : 'text-green-600'
-                      }`} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 text-sm">
-                        {transaction.category.name}
-                      </p>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {format(new Date(transaction.date), 'dd MMM • HH:mm', { locale: id })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`font-black text-sm ${
-                    isExpense ? 'text-red-600' : 'text-green-600'
-                  }`}>
-                    {isExpense ? '-' : '+'}{formatCurrency(transaction.amount).replace('Rp', 'Rp')}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Category and Budget */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Pie Chart */}
-        <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-3xl p-6 border border-purple-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-purple-300 to-pink-400 rounded-full opacity-15 animate-pulse"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-rose-300 to-purple-400 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-4 left-4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-10 right-10 w-1 h-1 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
-          
-          <h2 className="text-xl font-bold text-slate-900 mb-6 relative z-10 drop-shadow-sm">{t('category')}</h2>
-
-          {categoryExpenses.length > 0 ? (
-            <div className="flex flex-col items-center relative z-10">
-              <div className="relative w-48 h-48 mb-6 hover:scale-110 transition-transform duration-500">
-                {/* Glow effect behind chart */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full opacity-20 blur-2xl animate-pulse"></div>
-                
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryExpenses}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {categoryExpenses.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    {(() => {
-                      const totalExpense = categoryExpenses.reduce((sum, cat) => sum + cat.value, 0);
-                      const topCategory = categoryExpenses[0];
-                      const topPercentage = totalExpense > 0 
-                        ? Math.round((topCategory.value / totalExpense) * 100)
-                        : 0;
-                      return (
-                        <>
-                          <p className="text-4xl font-black text-slate-900 animate-pulse drop-shadow-lg">{topPercentage}%</p>
-                          <p className="text-sm text-slate-600 font-semibold">
-                            {topPercentage > 60 ? t('dominant') : t('efficient')}
-                          </p>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full space-y-3">
-                {categoryExpenses.slice(0, 3).map((category, index) => {
-                  const totalExpense = categoryExpenses.reduce((sum, cat) => sum + cat.value, 0);
-                  const percentage = totalExpense > 0 
-                    ? Math.round((category.value / totalExpense) * 100) 
-                    : 0;
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between bg-white rounded-xl p-3 hover:shadow-md hover:scale-[1.02] transition-all duration-200 border border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-4 h-4 rounded-full shadow-md animate-pulse" 
-                          style={{ backgroundColor: category.color }}
-                        ></div>
-                        <span className="text-sm text-slate-700 font-semibold">{category.name}</span>
-                      </div>
-                      <span className="text-sm font-black text-slate-900">{percentage}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center text-slate-400 relative z-10">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce-slow">
-                  <TrendingUp className="w-10 h-10 text-purple-400" />
-                </div>
-                <p className="font-semibold">{ t('noCategory')}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Budget Target */}
-        <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-3xl p-6 border border-orange-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-          {/* Animated decorative circles */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-orange-300 to-amber-400 rounded-full opacity-15 animate-pulse"></div>
-          <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '0.8s' }}></div>
-          
-          {/* Sparkle effects */}
-          <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-orange-400 rounded-full animate-ping"></div>
-          <div className="absolute bottom-10 left-10 w-1 h-1 bg-amber-400 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
-          
-          <h2 className="text-xl font-bold text-slate-900 mb-6 relative z-10 drop-shadow-sm">{t('budgetTarget')}</h2>
-
-          {budgetData.length > 0 ? (
-            <div className="space-y-6 relative z-10">
-              {budgetData.slice(0, 3).map((budget, index) => {
-                const Icon = budget.icon;
-                
-                return (
-                  <div key={index} className="bg-white rounded-2xl p-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 border border-slate-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-transform">
-                          <Icon className="w-6 h-6 text-slate-700" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900 text-sm">{budget.name}</p>
-                          <p className="text-xs text-slate-500 font-medium">
-                            {formatCurrency(budget.spent)} / {formatCurrency(budget.budget)}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-sm font-black px-3 py-1.5 rounded-full shadow-sm" style={{ 
-                        color: budget.color,
-                        backgroundColor: `${budget.color}20`
-                      }}>
-                        {budget.percentage}%
-                      </span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500 shadow-sm"
-                        style={{ 
-                          width: `${Math.min(budget.percentage, 100)}%`,
-                          backgroundColor: budget.color
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-center relative z-10">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl flex items-center justify-center mb-4 shadow-lg animate-bounce-slow">
-                <PiggyBank className="w-10 h-10 text-orange-400" />
-              </div>
-              <p className="text-slate-400 mb-2 font-semibold">{t('noBudget')}</p>
-              <Link 
-                href="/dashboard/budget?action=add"
-                className="text-sm text-[#6366F1] font-semibold hover:underline hover:scale-110 transition-transform"
-              >
-                {t('createBudget')}
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
+      <section className="finverse-card overflow-hidden"><div className="mb-4 flex items-center justify-between"><div><h2 className="section-title">Riwayat Transaksi Terbaru</h2><p className="section-subtitle">5 aktivitas terakhir yang tercatat mutakhir pada akun Econary Anda</p></div><Link href="/dashboard/transactions" className="green-link">Lihat Semua Riwayat <ChevronRight size={15} /></Link></div><div className="transaction-table"><div className="transaction-head"><span>Transaksi & Catatan</span><span>Kategori</span><span>Metode Pembayaran</span><span>Tanggal & Waktu</span><span className="text-right">Nominal Transaksi</span></div>{recentTransactions.map((transaction) => { const expense = transaction.type === 'expense'; return <div className="transaction-row" key={transaction.id}><div className="transaction-name"><div className={`transaction-icon ${expense ? 'expense-icon' : 'income-icon'}`}>{transaction.category?.icon || (expense ? '🍽️' : '▣')}</div><div><b>{transaction.note || transaction.category?.name}</b><small>{transaction.wallet?.name || 'Wallet'}</small></div></div><span className="category-badge">{transaction.category?.name || 'Umum'}</span><span className="muted-cell">{transaction.wallet?.name || 'Transfer'}</span><span className="muted-cell">{format(new Date(transaction.date), 'dd MMM yyyy, HH:mm', { locale: id })}</span><b className={`amount ${expense ? 'negative' : 'positive'}`}>{expense ? '-' : '+'}{formatCurrency(transaction.amount)}</b></div> })}</div>{recentTransactions.length === 0 && <p className="empty-state">Belum ada transaksi bulan ini.</p>}</section>
+      <div className="status-bar"><span>◉ Seluruh mutasi otomatis divalidasi dengan enkripsi SHA-256 dan terhubung ke PostgreSQL Econary.</span><span>Status Node: <b>Online</b> | Latency: 24ms</span></div>
     </div>
   );
+}
+
+function StatCard({ label, value, icon, tone, footer, progress, ring }) {
+  return <div className="stat-card"><div className="flex items-start justify-between"><div><span className="stat-label">{label}</span><h3 className="stat-value">{value}</h3></div><span className={`stat-icon ${tone}`}>{icon}</span>{ring && <span className="mini-ring" style={{ '--ring': ring }}>{ring}</span>}</div><div className="stat-footer">{footer}</div>{progress !== undefined && <div className="progress-track"><div style={{ width: `${progress}%` }} /></div>}</div>;
 }

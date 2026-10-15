@@ -95,6 +95,8 @@ async function getDashboardData(userId) {
   const prevMonthExpenses = prevMonthTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + Number(t.amount), 0);
+  
+  const prevMonthBalance = prevMonthIncome - prevMonthExpenses;
 
   // Get expense by category
   const expensesByCategory = await prisma.transaction.groupBy({
@@ -226,7 +228,7 @@ async function getDashboardData(userId) {
     expenses: Number(expenses),
     prevMonthIncome: Number(prevMonthIncome),
     prevMonthExpenses: Number(prevMonthExpenses),
-    prevMonthBalance: Number(totalBalance),
+    prevMonthBalance: Number(prevMonthBalance),
     transactions: recentTransactions.map(t => ({
       id: t.id,
       type: t.type,

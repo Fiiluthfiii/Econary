@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { User, Lock, Settings as SettingsIcon, Bell, Database, Camera, Search, Moon, Sun, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { usePreferences } from '@/components/providers/PreferencesProvider';
 import { useSettingsTranslations } from './SettingsClientTranslated';
 
 export default function SettingsClient({ user }) {
   const searchParams = useSearchParams();
+  const { data: session, update } = useSession();
   const tabParam = searchParams.get('tab');
   const [activeMenu, setActiveMenu] = useState(tabParam || 'profile');
   const { language } = usePreferences();
@@ -193,7 +195,22 @@ export default function SettingsClient({ user }) {
         });
       }
 
+      // Refresh session untuk update nama di sidebar
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          name: data.user.name,
+          email: data.user.email,
+        },
+      });
+
       setMessage({ type: 'success', text: data.message || 'Profil berhasil diperbarui!' });
+      
+      // Reload halaman setelah 1 detik agar perubahan terlihat di sidebar
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       setMessage({ type: 'error', text: error.message });
     } finally {

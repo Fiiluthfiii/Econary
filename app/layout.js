@@ -6,13 +6,8 @@ import { PreferencesProvider } from '@/components/providers/PreferencesProvider'
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Pocket - Pencatat Keuangan Pribadi',
+  title: 'Econary - Pencatat Keuangan Pribadi',
   description: 'Kelola keuanganmu, sesederhana menyimpannya di saku',
-  icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
-  },
 };
 
 export default function RootLayout({ children }) {

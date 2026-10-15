@@ -38,11 +38,11 @@ export function useSettingsTranslations(language) {
         updating: 'Memperbarui...',
         closeAccount: 'Tutup Akun',
         closeAccountDesc: 'Menghapus akun Anda bersifat permanen. Seluruh data transaksi, kategori, dan laporan akan dihapus selamanya dari sistem kami.',
-        deleteAccountBtn: 'Hapus Akun Pocket',
+        deleteAccountBtn: 'Hapus Akun Econary',
         
         // Preferences
         preferences: 'Preferensi',
-        preferencesDesc: 'Personalisasikan pengalaman Pocket Anda sesuai kenyamanan.',
+        preferencesDesc: 'Personalisasikan pengalaman Econary Anda sesuai kenyamanan.',
         displayMode: 'MODE TAMPILAN',
         light: 'Terang',
         lightDesc: 'Sempurna untuk penggunaan di siang hari.',
@@ -63,7 +63,7 @@ export function useSettingsTranslations(language) {
         daySat: 'Sab',
         
         // Delete Modal
-        deleteTitle: 'Hapus Akun Pocket?',
+        deleteTitle: 'Hapus Akun Econary?',
         deleteSubtitle: 'Tindakan ini tidak dapat dibatalkan. Seluruh data Anda akan dihapus secara permanen.',
         willBeDeleted: 'Yang akan dihapus:',
         yourAccount: 'Akun Anda',
@@ -133,11 +133,11 @@ export function useSettingsTranslations(language) {
         updating: 'Updating...',
         closeAccount: 'Close Account',
         closeAccountDesc: 'Deleting your account is permanent. All your transaction data, categories, and reports will be permanently deleted from our system.',
-        deleteAccountBtn: 'Delete Pocket Account',
+        deleteAccountBtn: 'Delete Econary Account',
         
         // Preferences
         preferences: 'Preferences',
-        preferencesDesc: 'Personalize your Pocket experience to your comfort.',
+        preferencesDesc: 'Personalize your Econary experience to your comfort.',
         displayMode: 'DISPLAY MODE',
         light: 'Light',
         lightDesc: 'Perfect for daytime use.',
@@ -158,7 +158,7 @@ export function useSettingsTranslations(language) {
         daySat: 'Sat',
         
         // Delete Modal
-        deleteTitle: 'Delete Pocket Account?',
+        deleteTitle: 'Delete Econary Account?',
         deleteSubtitle: 'This action cannot be undone. All your data will be permanently deleted.',
         willBeDeleted: 'What will be deleted:',
         yourAccount: 'Your Account',

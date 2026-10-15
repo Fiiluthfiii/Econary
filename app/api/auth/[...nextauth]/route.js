@@ -17,35 +17,42 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email dan password harus diisi');
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error('Email dan password harus diisi');
+          }
+
+          const user = await getUserByEmail(credentials.email);
+
+          if (!user) {
+            throw new Error('Email atau password salah');
+          }
+
+          const isValid = await verifyPassword(credentials.password, user.password);
+
+          if (!isValid) {
+            throw new Error('Email atau password salah');
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          };
+        } catch (error) {
+          console.error('Authorize error:', error);
+          throw error;
         }
-
-        const user = await getUserByEmail(credentials.email);
-
-        if (!user) {
-          throw new Error('Email atau password salah');
-        }
-
-        const isValid = await verifyPassword(credentials.password, user.password);
-
-        if (!isValid) {
-          throw new Error('Email atau password salah');
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        };
       },
     }),
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
   callbacks: {
     async signIn({ user, account }) {
