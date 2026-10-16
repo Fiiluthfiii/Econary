@@ -270,7 +270,6 @@ export default function CategoriesClient({ userName }) {
           <small>TIPS MAHASISWA &amp; FREELANCER</small>
           <h3>Pisahkan Dana Kerja Proyek &amp; Uang Saku Kuliah</h3>
           <p>Gunakan sub-kategori custom untuk mengisolasi pengeluaran tools desain berbayar dari pos makan harian.</p>
-          <div className="tips-image">🍜 🧾</div>
         </section>
       </aside>
     </div>
