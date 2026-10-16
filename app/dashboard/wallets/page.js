@@ -12,5 +12,5 @@ export default async function WalletsPage() {
     redirect('/login');
   }
 
-  return <WalletsClient userId={session.user.id} />;
+  return <WalletsClient userId={session.user.id} userName={session.user.name} />;
 }

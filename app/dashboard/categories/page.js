@@ -12,5 +12,5 @@ export default async function CategoriesPage() {
     redirect('/login');
   }
 
-  return <CategoriesClient userId={session.user.id} />;
+  return <CategoriesClient userId={session.user.id} userName={session.user.name} />;
 }
