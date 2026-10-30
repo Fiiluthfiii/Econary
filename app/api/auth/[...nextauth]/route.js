@@ -4,6 +4,12 @@ import GoogleProvider from 'next-auth/providers/google';
 import { getUserByEmail, verifyPassword } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Vercel menyediakan VERCEL_URL secara otomatis. Gunakan URL deployment
+// apabila NEXTAUTH_URL dari environment lokal masih menunjuk ke localhost.
+if (process.env.VERCEL_URL && (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes('localhost'))) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
