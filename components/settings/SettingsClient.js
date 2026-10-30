@@ -247,7 +247,7 @@ export default function SettingsClient({ user }) {
                   onChange={(value) => setProfile({ ...profile, bio: value })}
                   icon={<BriefcaseIcon />}
                 />
-                <label className="setting-field">
+                <label className="setting-field currency-field">
                   <span>MATA UANG UTAMA</span>
                   <select value={preferences.currency} onChange={(event) => setPreferences({ ...preferences, currency: event.target.value })}>
                     <option value="IDR">IDR - Rupiah Indonesia (Rp)</option>

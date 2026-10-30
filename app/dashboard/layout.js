@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }) {
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
                       className={`
-                        group relative flex items-center space-x-3 px-3 py-2.5 rounded-full transition-all duration-200 text-sm
+                        group relative flex items-center space-x-0 px-3 py-2.5 rounded-full transition-all duration-200 text-sm
                         ${isActive 
                           ? 'bg-[#4d8061] text-white shadow-sm' 
                           : 'text-gray-700 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'

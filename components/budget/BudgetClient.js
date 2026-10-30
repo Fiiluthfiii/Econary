@@ -142,7 +142,7 @@ export default function BudgetClient({ userId, userName: initialUserName }) {
     <div className="budget-content">
       <section className="budget-list-section">
         <div className="section-heading">
-          <h3><Settings2 size={18} /> Alokasi Pagu {budgets.length} Kategori (SKPL-Econary FR-09)</h3>
+            <h3><Settings2 size={18} /> Alokasi Pagu {budgets.length} Kategori</h3>
           <span>{budgets.length} Pos Terdaftar</span>
         </div>
         {loading ? (
@@ -186,12 +186,21 @@ export default function BudgetClient({ userId, userName: initialUserName }) {
             );
           })
         ) : (
-          <div className="empty-state" style={{ padding: '40px', textAlign: 'center', background: '#fef3c7', borderRadius: '12px' }}>
+          <div
+            className="empty-state"
+            role="button"
+            tabIndex={0}
+            onClick={openNew}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') openNew();
+            }}
+            style={{ padding: '40px', textAlign: 'center', background: '#fef3c7', borderRadius: '12px', cursor: 'pointer' }}
+          >
             <p style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 'bold', color: '#92400e' }}>
               Belum ada anggaran untuk bulan ini
             </p>
             <p style={{ margin: 0, fontSize: '14px', color: '#78350f' }}>
-              Klik tombol <strong>"Atur Pos Anggaran Baru"</strong> untuk membuat anggaran pertama Anda
+              Klik tombol <strong>&quot;Atur Pos Anggaran Baru&quot;</strong> untuk membuat anggaran pertama Anda
             </p>
           </div>
         )}

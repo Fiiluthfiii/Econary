@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowLeftRight, ArrowUp, Bell, BriefcaseBusiness, Calendar, Check, CircleAlert, CloudUpload, Gamepad2, GraduationCap, MoreHorizontal, Pill, Plus, ShoppingBag, Sparkles, Utensils, WalletCards } from 'lucide-react';
+// Icons removed for simplicity
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
-const categoryIcons = { Makanan: Utensils, Transport: WalletCards, Pendidikan: GraduationCap, Hiburan: Gamepad2, Belanja: ShoppingBag, Kesehatan: Pill, Utilitas: WalletCards };
 
 export default function TransactionsClient({ userId, userName: initialUserName }) {
   const [activeTab, setActiveTab] = useState('expense');
@@ -101,10 +100,10 @@ export default function TransactionsClient({ userId, userName: initialUserName }
         </div>
         <div className="header-actions">
           <button className="finverse-primary-button" onClick={() => amountRef.current?.focus()}>
-            <Plus size={16} /> Tambah Transaksi
+            Tambah Transaksi
           </button>
           <button className="header-icon" aria-label="Notifikasi">
-            <Bell size={18} />
+            🔔
           </button>
           <div className="profile-chip">
             <div className="avatar">
@@ -120,7 +119,7 @@ export default function TransactionsClient({ userId, userName: initialUserName }
       <div className="transaction-title-row"><h2 className="display-title">Tambah &amp; Kelola Catatan Transaksi</h2><div className="title-status"><span>● PostgreSQL Active <small>v16.2</small></span><span>◌ Auto-Save Aktif</span></div></div>
       <div className="transaction-grid">
         <section className="transaction-form finverse-card">
-          <label className="form-label">JENIS TRANSAKSI</label><div className="type-switcher">{[['expense', ArrowDown, 'Pengeluaran'], ['income', ArrowUp, 'Pemasukan'], ['transfer', ArrowLeftRight, 'Transfer']].map(([key, Icon, label]) => <button key={key} onClick={() => { setActiveTab(key); setSelectedCategory(null); }} className={activeTab === key ? `type-active ${key}` : ''}><Icon size={16} />{label}</button>)}</div>
+          <label className="form-label">JENIS TRANSAKSI</label><div className="type-switcher">{[['expense', 'Pengeluaran'], ['income', 'Pemasukan'], ['transfer', 'Transfer']].map(([key, label]) => <button key={key} onClick={() => { setActiveTab(key); setSelectedCategory(null); }} className={activeTab === key ? `type-active ${key}` : ''}>{label}</button>)}</div>
           <div className="amount-panel"><div className="form-label-row"><label className="form-label">NOMINAL TRANSAKSI</label><span>Maksimal 12 Digit (IDR)</span></div><input ref={amountRef} className="amount-input" value={money(amount)} onChange={(event) => setAmount(event.target.value.replace(/\D/g, ''))} /><div className="quick-amounts">{[20000, 50000, 100000, 500000, 1000000].map((value) => <button key={value} onClick={() => setAmount(String(numericAmount + value))}>+{value >= 1000000 ? '1 jt' : `${value / 1000}rb`}</button>)}</div></div>
           <div>
             <div className="form-label-row">
@@ -130,14 +129,12 @@ export default function TransactionsClient({ userId, userName: initialUserName }
             {visibleCategories.length > 0 ? (
               <div className="category-grid">
                 {visibleCategories.map((category) => { 
-                  const Icon = categoryIcons[category.name] || MoreHorizontal; 
                   return (
                     <button 
                       key={category.id} 
                       onClick={() => setSelectedCategory(category.id)} 
                       className={`category-tile ${selectedCategory === category.id ? 'selected' : ''}`}
                     >
-                      <span className="category-icon">{category.icon || <Icon size={18} />}</span>
                       <b>{category.name}</b>
                       <small>
                         {category.name === 'Makanan' ? 'Konsumsi harian' : 
@@ -161,14 +158,14 @@ export default function TransactionsClient({ userId, userName: initialUserName }
               </div>
             )}
           </div>
-          <div className="two-fields"><div><div className="form-label-row"><label className="form-label">WAKTU TRANSAKSI</label><button className="set-now" onClick={() => setTransactionDate(new Date())}>Setel Sekarang</button></div><div className="field-with-icon"><Calendar size={16} /><input type="datetime-local" value={format(transactionDate, "yyyy-MM-dd'T'HH:mm")} onChange={(event) => setTransactionDate(new Date(event.target.value))} /></div></div><div><label className="form-label">METODE PEMBAYARAN</label><select className="styled-field" value={selectedWallet} onChange={(event) => setSelectedWallet(event.target.value)}><option value="">Pilih dompet</option>{wallets.map((wallet) => <option key={wallet.id} value={wallet.id}>{wallet.name} ({money(wallet.balance)})</option>)}</select></div></div>
+          <div className="two-fields"><div><div className="form-label-row"><label className="form-label">WAKTU TRANSAKSI</label><button className="set-now" onClick={() => setTransactionDate(new Date())}>Setel Sekarang</button></div><div className="field-with-icon"><input type="datetime-local" value={format(transactionDate, "yyyy-MM-dd'T'HH:mm")} onChange={(event) => setTransactionDate(new Date(event.target.value))} /></div></div><div><label className="form-label">METODE PEMBAYARAN</label><select className="styled-field" value={selectedWallet} onChange={(event) => setSelectedWallet(event.target.value)}><option value="">Pilih dompet</option>{wallets.map((wallet) => <option key={wallet.id} value={wallet.id}>{wallet.name} ({money(wallet.balance)})</option>)}</select></div></div>
           <div><label className="form-label">KETERANGAN &amp; CATATAN TRANSAKSI</label><input className="styled-field" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Makan siang tim freelance & kopi americano" /></div>
-          <div><label className="form-label">PENANDA KHUSUS PERSONA MAHASISWA / FREELANCER</label><div className="persona-fields"><label><BriefcaseBusiness size={16} /><span>Tagihan Klien Freelance</span><input type="checkbox" checked={isFreelanceClient} onChange={(event) => setIsFreelanceClient(event.target.checked)} /></label><label><span>♟</span><span>Uang Saku Orang Tua</span><input type="checkbox" checked={useFriendMoney} onChange={(event) => setUseFriendMoney(event.target.checked)} /></label></div></div>
-          <div><label className="form-label">LAMPIRAN BUKTI TRANSAKSI / NOTA</label><button className="upload-box" onClick={() => fileRef.current?.click()}><CloudUpload size={25} /><b>{receipt ? receipt.name : 'Tarik nota struk ke sini'} <span>atau klik untuk memilih file</span></b><small>Mendukung JPG, PNG, PDF (Maksimal 5MB)</small></button><input ref={fileRef} hidden type="file" accept="image/jpeg,image/png,application/pdf" onChange={(event) => setReceipt(event.target.files?.[0] || null)} /></div>
-          <div className="form-actions"><button className="save-button" onClick={handleSubmit} disabled={loading}><Check size={17} />{loading ? 'Menyimpan...' : 'Simpan ke PostgreSQL'}</button><button className="reset-button" onClick={resetForm}>Batal / Reset</button></div>
+          <div><label className="form-label">PENANDA KHUSUS PERSONA MAHASISWA / FREELANCER</label><div className="persona-fields"><label><span>💼</span><span>Tagihan Klien Freelance</span><input type="checkbox" checked={isFreelanceClient} onChange={(event) => setIsFreelanceClient(event.target.checked)} /></label><label><span>♟</span><span>Uang Saku Orang Tua</span><input type="checkbox" checked={useFriendMoney} onChange={(event) => setUseFriendMoney(event.target.checked)} /></label></div></div>
+          <div><label className="form-label">LAMPIRAN BUKTI TRANSAKSI / NOTA</label><button className="upload-box" onClick={() => fileRef.current?.click()}><span style={{fontSize: '25px'}}>☁️</span><b>{receipt ? receipt.name : 'Tarik nota struk ke sini'} <span>atau klik untuk memilih file</span></b><small>Mendukung JPG, PNG, PDF (Maksimal 5MB)</small></button><input ref={fileRef} hidden type="file" accept="image/jpeg,image/png,application/pdf" onChange={(event) => setReceipt(event.target.files?.[0] || null)} /></div>
+          <div className="form-actions"><button className="save-button" onClick={handleSubmit} disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Transaksi'}</button><button className="reset-button" onClick={resetForm}>Batal / Reset</button></div>
         </section>
         <aside className="transaction-aside">
-          <InfoCard title="PRATINJAU DAMPAK SALDO" icon={<WalletCards size={18} />} badge="LIVE SYNC">
+          <InfoCard title="PRATINJAU DAMPAK SALDO" badge="LIVE SYNC">
             <div className="info-rows">
               <p>
                 <span>Dompet Terpilih</span>
@@ -195,7 +192,7 @@ export default function TransactionsClient({ userId, userName: initialUserName }
               <b>{money(totalBalance)}</b>
             </div>
           </InfoCard>
-          <InfoCard title="ALOKASI BUDGET KATEGORI" icon={<CircleAlert size={18} />} badge={selectedCategoryBudget?.category?.name || 'Budget'}>
+          <InfoCard title="ALOKASI BUDGET KATEGORI" badge={selectedCategoryBudget?.category?.name || 'Budget'}>
             {selectedCategoryBudget ? (
               <>
                 <p className="budget-line">
@@ -211,7 +208,7 @@ export default function TransactionsClient({ userId, userName: initialUserName }
                 </p>
                 {(selectedCategoryBudget.spent / selectedCategoryBudget.amount) > 0.7 && (
                   <div className="notice">
-                    <CircleAlert size={17} />
+                    ⚠️
                     {(selectedCategoryBudget.spent / selectedCategoryBudget.amount) >= 1 
                       ? 'Budget sudah terlampaui! Segera kurangi pengeluaran kategori ini.'
                       : 'Pengeluaran mendekati batas budget. Gunakan dengan bijak.'}
@@ -222,7 +219,7 @@ export default function TransactionsClient({ userId, userName: initialUserName }
               <p className="empty-recent">Belum ada budget untuk bulan ini. Buat budget di menu Perencanaan Anggaran.</p>
             )}
           </InfoCard>
-          <InfoCard title="DAMPAK ALTERNATE UNIVERSE" icon={<Sparkles size={18} />} badge="SIMULATION" className="universe-card">
+          <InfoCard title="DAMPAK ALTERNATE UNIVERSE" badge="SIMULATION" className="universe-card">
             <p>Setiap rupiah yang dicatat mengaktifkan model komparasi Econary AU: membandingkan keputusan finansial Anda saat ini dengan skenario alternatif investasi rebalancing & tabungan darurat.</p>
             <div className="scenario-grid">
               <div>
@@ -244,4 +241,4 @@ export default function TransactionsClient({ userId, userName: initialUserName }
   );
 }
 
-function InfoCard({ title, icon, badge, children, className = '' }) { return <section className={`info-card finverse-card ${className}`}><div className="info-title"><h3>{icon}{title}</h3>{badge && <span>{badge}</span>}</div>{children}</section>; }
+function InfoCard({ title, badge, children, className = '' }) { return <section className={`info-card finverse-card ${className}`}><div className="info-title"><h3>{title}</h3>{badge && <span>{badge}</span>}</div>{children}</section>; }

@@ -151,7 +151,7 @@ export default function AlternateUniverseClient({ userName }) {
     <header className="finverse-topbar universe-topbar">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="greeting">Halo, {userName}! 🌿</h1>
+          <h1 className="greeting">Halo, {userName}!</h1>
           <span className="date-line">| {format(now, 'EEEE, dd MMMM yyyy', { locale: id })}</span>
           <span className="sync-pill"><Cloud size={12} /> PostgreSQL Synced</span>
         </div>
@@ -174,7 +174,7 @@ export default function AlternateUniverseClient({ userName }) {
           <span>FR-10 • PREDICTIVE TWIN ENGINE</span>
           <span>Live Sandbox</span>
         </div>
-        <h2>Financial Alternate Universe 🌌</h2>
+        <h2>Financial Alternate Universe</h2>
         <p>
           Simulasikan keputusan finansial baru dan intip masa depan saldo Anda tanpa<br className="desktop-only" /> 
           risiko di dunia nyata dengan pendekatan terukur yang membumi.
@@ -227,7 +227,7 @@ export default function AlternateUniverseClient({ userName }) {
       
       <div className="universe-right">
         <StatusCard 
-          title="Alternate Universe #A" 
+          title="Alternate Universe" 
           badge="Optimal & Cerdas" 
           amount={money(alternateAmount)} 
           color="green" 

@@ -177,7 +177,7 @@ export default function SavingGoalsClient({ userName }) {
       ) : (
         <div className="budget-empty">
           <p>Belum ada target tabungan yang dibuat.</p>
-          <p>Klik tombol "Buat Target Baru" untuk membuat target tabungan pertama Anda.</p>
+          <p>Klik tombol &quot;Buat Target Baru&quot; untuk membuat target tabungan pertama Anda.</p>
         </div>
       )}
     </section>

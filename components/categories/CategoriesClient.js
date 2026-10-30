@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BookOpen, CircleDollarSign, Gamepad2, HeartPulse, MoreHorizontal, Pencil, Plus, Search, Settings2, ShoppingBag, Trash2, TrendingUp, Utensils, WalletCards, Zap } from 'lucide-react';
+import { BookOpen, CircleDollarSign, Gamepad2, HeartPulse, MoreHorizontal, Pencil, Plus, Search, ShoppingBag, Trash2, Utensils, WalletCards, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import CategoryModal from './CategoryModal';
@@ -152,7 +152,6 @@ export default function CategoriesClient({ userName }) {
         label="TOTAL KATEGORI UTAMA" 
         value={`${categories.length} Kategori`} 
         note="Kepatuhan Penuh SKPL FR-09" 
-        icon={<Settings2 size={17} />} 
         tone="green" 
       />
       <Stat 
@@ -168,13 +167,6 @@ export default function CategoriesClient({ userName }) {
         note={topCategory ? `${topCategoryPercent}% Porsi Total Ledger` : 'Tambahkan transaksi untuk melihat statistik'} 
         icon={topCategory ? (() => { const Icon = categoryIcon(topCategory.name); return <Icon size={17} />; })() : <Utensils size={17} />} 
         tone="gold" 
-      />
-      <Stat 
-        label="STATUS SINKRONISASI" 
-        value="Terkoneksi Pagu & AU" 
-        note="● Live Alternate Engine" 
-        icon={<TrendingUp size={17} />} 
-        tone="green" 
       />
     </div>
     
@@ -203,7 +195,7 @@ export default function CategoriesClient({ userName }) {
             </p>
             {!searchTerm && (
               <p style={{ color: '#999', fontSize: 13 }}>
-                Klik "Tambah Kategori / Sub-Pos" untuk membuat kategori baru
+                Klik &quot;Tambah Kategori / Sub-Pos&quot; untuk membuat kategori baru
               </p>
             )}
           </div>
@@ -230,7 +222,7 @@ export default function CategoriesClient({ userName }) {
           <label>
             Kategori Induk
             <select>
-              <option>Pendidikan (SKPL - Persona)</option>
+              <option>Pendidikan</option>
               <option>Makanan &amp; Minuman</option>
               <option>Transportasi</option>
             </select>
@@ -256,7 +248,7 @@ export default function CategoriesClient({ userName }) {
             </span>
           </label>
           <button className="save-sub-button" onClick={() => setModalCategory({})}>
-            ▣ &nbsp; Simpan Sub-Kategori ke PostgreSQL
+            Simpan Sub-Kategori
           </button>
         </section>
         
@@ -314,7 +306,6 @@ function CategoryCard({ category, stats = {}, onEdit, onDelete, onAddSub }) {
         <b>{stats.total > 0 ? money(stats.total) : category.type === 'income' ? 'Multi-Source' : '-'}</b>
       </div>
       <div className="category-actions">
-        <button onClick={onEdit}><Settings2 size={14} /></button>
         <button onClick={onEdit}><Pencil size={14} /></button>
         <button onClick={onDelete}><Trash2 size={14} /></button>
       </div>
