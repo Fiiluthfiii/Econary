@@ -184,10 +184,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-[#4A7C59] hover:bg-[#3d6449] text-white font-semibold py-3.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? 'Memproses...' : 'Masuk ke Dashboard Finverse'}
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
+              {loading ? 'Memproses...' : 'Masuk ke Dashboard'}
             </button>
           </form>
         </div>
